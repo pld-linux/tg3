@@ -133,6 +133,6 @@ rm -rf $RPM_BUILD_ROOT
 %files -n kernel%{_alt_kernel}-smp-net-tg3
 %defattr(644,root,root,755)
 /lib/modules/%{_kernel_ver}smp/kernel/drivers/net/%{pname}*.ko*
-/etc/modprobe.d/%{_kernel_ver}/%{pname}.conf
+/etc/modprobe.d/%{_kernel_ver}smp/%{pname}.conf
 %endif
 %endif
