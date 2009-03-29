@@ -80,7 +80,7 @@ Sterownik dla Linuksa SMP do kart sieciowych Broadcom BCM57xx.
 
 %build
 ./makeflags.sh /usr/src/linux > tg3_flags.h
-%build_kernel_modules -m tg3
+%build_kernel_modules -m %{pname}
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -91,7 +91,12 @@ install tg3.4 $RPM_BUILD_ROOT%{_mandir}/man4
 %endif
 
 %if %{with kernel}
-%install_kernel_modules -m tg3 -d kernel/drivers/net
+%install_kernel_modules -m %{pname} -d kernel/drivers/net -n %{pname} -s current
+# blacklist kernel module
+cat > $RPM_BUILD_ROOT/etc/modprobe.d/%{_kernel_ver}/%{pname}.conf <<'EOF'
+blacklist tg3
+alias tg3 tg3-current
+EOF
 %endif
 
 %clean
@@ -120,12 +125,14 @@ rm -rf $RPM_BUILD_ROOT
 %if %{with up} || %{without dist_kernel}
 %files -n kernel%{_alt_kernel}-net-tg3
 %defattr(644,root,root,755)
-/lib/modules/%{_kernel_ver}/kernel/drivers/net/tg3.ko*
+/lib/modules/%{_kernel_ver}/kernel/drivers/net/%{pname}*.ko*
+/etc/modprobe.d/%{_kernel_ver}/%{pname}.conf
 %endif
 
 %if %{with smp} && %{with dist_kernel}
 %files -n kernel%{_alt_kernel}-smp-net-tg3
 %defattr(644,root,root,755)
-/lib/modules/%{_kernel_ver}smp/kernel/drivers/net/tg3.ko*
+/lib/modules/%{_kernel_ver}smp/kernel/drivers/net/%{pname}*.ko*
+/etc/modprobe.d/%{_kernel_ver}/%{pname}.conf
 %endif
 %endif
