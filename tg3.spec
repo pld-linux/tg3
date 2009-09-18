@@ -27,7 +27,7 @@
 Summary:	Linux driver for the Broadcom's NetXtreme BCM57xx Network Interface Cards
 Summary(pl.UTF-8):	Sterownik dla Linuksa do kart sieciowych Broadcom NetXtreme BCM57xx
 Name:		%{pname}%{_alt_kernel}
-Version:	3.92n
+Version:	3.98e
 Release:	%{rel}
 License:	GPL v2
 Group:		Base/Kernel
@@ -41,13 +41,9 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 This package contains the Linux driver for the Broadcom's NetXtreme
 BCM57xx Network Interface Cards.
 
-Note: this driver is obsoleted by Broadcom, use tg3 instead.
-
 %description -l pl.UTF-8
 Pakiet zawiera sterownik dla Linuksa do kart sieciowych Broadcom
 BCM57xx.
-
-Uwaga: ten sterownik Broadcomu jest przestarzały, należy używać tg3.
 
 %package -n kernel%{_alt_kernel}-net-tg3
 Summary:	Linux SMP driver for the Broadcom's NetXtreme BCM57xx Network Interface Cards
@@ -61,12 +57,8 @@ Requires(post,postun):	/sbin/depmod
 Linux driver for the Broadcom's NetXtreme BCM57xx Network Interface
 Cards.
 
-Note: this driver is obsoleted by Broadcom, use tg3 instead.
-
 %description -n kernel%{_alt_kernel}-net-tg3 -l pl.UTF-8
 Sterownik dla Linuksa do kart sieciowych Broadcom BCM57xx.
-
-Uwaga: ten sterownik Broadcomu jest przestarzały, należy używać tg3.
 
 %package -n kernel%{_alt_kernel}-smp-net-tg3
 Summary:	Linux SMP driver for the Broadcom's NetXtreme BCM57xx Network Interface Cards
@@ -80,8 +72,6 @@ Requires(post,postun):	/sbin/depmod
 Linux SMP driver for the Broadcom's NetXtreme BCM57xx Network
 Interface Cards.
 
-Note: this driver is obsoleted by Broadcom, use tg3 instead.
-
 %description -n kernel%{_alt_kernel}-smp-net-tg3 -l pl.UTF-8
 Sterownik dla Linuksa SMP do kart sieciowych Broadcom BCM57xx.
 
@@ -90,7 +80,7 @@ Sterownik dla Linuksa SMP do kart sieciowych Broadcom BCM57xx.
 
 %build
 ./makeflags.sh /usr/src/linux > tg3_flags.h
-%build_kernel_modules -m tg3
+%build_kernel_modules -m %{pname}
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -101,7 +91,12 @@ install tg3.4 $RPM_BUILD_ROOT%{_mandir}/man4
 %endif
 
 %if %{with kernel}
-%install_kernel_modules -m tg3 -d kernel/drivers/net
+%install_kernel_modules -m %{pname} -d kernel/drivers/net -n %{pname} -s current
+# blacklist kernel module
+cat > $RPM_BUILD_ROOT/etc/modprobe.d/%{_kernel_ver}/%{pname}.conf <<'EOF'
+blacklist tg3
+alias tg3 tg3-current
+EOF
 %endif
 
 %clean
@@ -130,12 +125,14 @@ rm -rf $RPM_BUILD_ROOT
 %if %{with up} || %{without dist_kernel}
 %files -n kernel%{_alt_kernel}-net-tg3
 %defattr(644,root,root,755)
-/lib/modules/%{_kernel_ver}/kernel/drivers/net/tg3.ko*
+/lib/modules/%{_kernel_ver}/kernel/drivers/net/%{pname}*.ko*
+/etc/modprobe.d/%{_kernel_ver}/%{pname}.conf
 %endif
 
 %if %{with smp} && %{with dist_kernel}
 %files -n kernel%{_alt_kernel}-smp-net-tg3
 %defattr(644,root,root,755)
-/lib/modules/%{_kernel_ver}smp/kernel/drivers/net/tg3.ko*
+/lib/modules/%{_kernel_ver}smp/kernel/drivers/net/%{pname}*.ko*
+/etc/modprobe.d/%{_kernel_ver}smp/%{pname}.conf
 %endif
 %endif
